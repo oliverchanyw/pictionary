@@ -1,7 +1,17 @@
 var express = require('express');
 var router = express.Router();
-var keysDb = require('../db/key');
+var roomsDb = require('../db/room');
+var pixelDb = require('../db/pixel');
+var drawingDb = require('../db/drawing');
 var checkValidKey = require('../middlewares/checkValidKey');
+
+// Render play screen
+router.get('/:roomID', function (req, res, next) {
+  res.render('playing');
+});
+
+
+
 
 /*
   Example routes. There's no need to do anything here, but make sure that you

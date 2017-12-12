@@ -1,21 +1,20 @@
 var express = require('express');
 var router = express.Router();
+var userDb = require('../db/user');
 
-// Provided - do not modify
-var credentalsAreValid = function (username, password) {
-  return username === 'admin' && password === 'password';
-};
 
-router.get('/loginAdmin', function (req, res, next) {
+router.get('/login', function (req, res, next) {
   res.render('login');
 });
 
-router.post('/loginAdmin', function (req, res, next) {
-  if (credentalsAreValid(req.body.username, req.body.password)) {
+router.post('/login', function (req, res, next) {
+  if (userDb.credentalsAreValid(req.body.username, req.body.password)) {
+    res.session.failedLogin = false;
     req.session.isAuthenticated = true;
-    res.send('Logged in as admin');
+    res.redirect('/lobby');
   } else {
-    res.redirect('/loginAdmin');
+    res.session.failedLogin = true;
+    res.redirect('/login');
   }
 });
 
