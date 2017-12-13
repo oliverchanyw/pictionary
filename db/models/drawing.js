@@ -4,7 +4,7 @@ var PixelSchema = require('./pixel').schema;
 var drawingSchema = mongoose.Schema({
   Labels: {
     type: [String],
-    required: true,
+    required: true
   },
   Image: [PixelSchema]
 });

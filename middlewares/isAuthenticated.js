@@ -2,7 +2,7 @@ var isAuthenticated = function (req, res, next) {
   if (req.session.isAuthenticated) {
     next();
   } else {
-    req.session.save(function(err) {
+    req.session.save(function (err) {
       res.redirect('/login');
     });
   }

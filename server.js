@@ -15,7 +15,7 @@ var dictionary, currentWord, currentPlayer, drawingTimer;
 
 // load dictionary.txt into memory
 fs.readFile(__dirname + '/dictionary.txt', function (err, data) {
-	dictionary = data.toString('utf-8').split('\r\n');
+  dictionary = data.toString('utf-8').split('\r\n');
 });
 
 io.sockets.on('connection', function (socket) {
@@ -144,10 +144,10 @@ io.sockets.on('connection', function (socket) {
 	function rndColor() {
 		var color = '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6);
 		return color;
-	};
+	}
 
 	function sortUsersByScore() {
-		users.sort(function(a,b) { return parseFloat(b.score) - parseFloat(a.score) } );
+		users.sort(function(a,b) { return parseFloat(b.score) - parseFloat(a.score); } );
 	}
 
 	// =================

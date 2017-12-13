@@ -1,5 +1,5 @@
 $(document).ready(function() {
-	var socket = io('http://localhost:8080');
+	var socket = io('/');
 	var status = $('#status');
 	var people = $('#people');
 	var	chatinput = $('#chatinput');

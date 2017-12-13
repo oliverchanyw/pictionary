@@ -4,7 +4,7 @@ var db = require('../db/mongo');
 
 // If isAuthenticated, play. Else login first
 router.get('/', function (req, res, next) {
-  res.render('play');
+  res.render('play', {initialName: req.session.user});
 });
 
 module.exports = router;

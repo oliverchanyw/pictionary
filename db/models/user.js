@@ -6,7 +6,7 @@ var userSchema = mongoose.Schema({
     required: true
   },
   Password: {
-    type: String,
+    type: String
   },
   Timein: {
     type: Date,

@@ -29,11 +29,11 @@ var activeRoom = function (roomID, pass, fail) {
 };
 
 var credentialsAreValid = function (username, password, pass, fail) {
-  User.findOne({Name: username, Password: password}, function(e, user) {
-   if (e) throw e;
-   if (!user) fail();
-   if (user) pass();
- });
+  User.findOne({Name: username, Password: password}, function (e, user) {
+    if (e) throw e;
+    if (!user) fail();
+    if (user) pass();
+  });
 };
 
 var addNewUser = function (username, password, pass, fail) {
@@ -49,7 +49,7 @@ var addNewUser = function (username, password, pass, fail) {
     } else {
       pass();
     }
-  })
+  });
 };
 
 var joinRoom = function (roomID, username, cb) {

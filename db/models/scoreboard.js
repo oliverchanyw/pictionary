@@ -3,7 +3,7 @@ var mongoose = require('mongoose');
 var ScoreBoardSchema = mongoose.Schema({
   RoomName: {
     type: String,
-    required: true,
+    required: true
   },
   Scores: {
     type: mongoose.Schema.Types.Mixed,

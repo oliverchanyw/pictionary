@@ -6,7 +6,7 @@ var ScoreBoardSchema = require('./scoreBoard').schema;
 var roomSchema = mongoose.Schema({
   Name: {
     type: String,
-    required: true,
+    required: true
   },
   Owner: {
     type: String,
