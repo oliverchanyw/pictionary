@@ -3,8 +3,10 @@ var mongoose = require('mongoose');
 var userSchema = mongoose.Schema({
   Name: {
     type: String,
-    required: true,
-    unique: true
+    required: true
+  },
+  Password: {
+    type: String,
   },
   Timein: {
     type: Date,
@@ -12,4 +14,6 @@ var userSchema = mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model('Room', roomSchema);
+var User = mongoose.model('User', userSchema);
+
+module.exports = User;

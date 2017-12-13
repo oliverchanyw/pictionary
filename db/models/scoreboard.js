@@ -6,7 +6,7 @@ var ScoreBoardSchema = mongoose.Schema({
     required: true,
   },
   Scores: {
-    type: Schema.Types.Mixed,
+    type: mongoose.Schema.Types.Mixed,
     required: true
   }
 });

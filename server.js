@@ -1,49 +1,186 @@
-// The below code creates a simple HTTP server with the NodeJS `http` module,
-// and makes it able to handle websockets. However, currently it does not
-// actually have any websocket functionality - that part is your job!
+var app = require('http').createServer(require('./expressApp.js'));
+var io = require('socket.io').listen(app, { log: false });
+var fs = require('fs');
 
-var http = require('http');
-var io = require('socket.io');
+app.listen(process.env.port || 8080);
+console.log('>>> Pictionary started at port ' + (process.env.port || 8080) + ' >>>');
 
-var requestListener = function (request, response) {
-  response.writeHead(200);
-  response.end('Hello, World!\n');
-};
+// ================================================
+//                                app logic section
+// ================================================
 
-var server = http.createServer(requestListener);
+// TODO: MONGO
+var users = [], canvas = [];
+var dictionary, currentWord, currentPlayer, drawingTimer;
 
-server.listen(8080, function () {
-  console.log('Server is running...');
+// load dictionary.txt into memory
+fs.readFile(__dirname + '/dictionary.txt', function (err, data) {
+	dictionary = data.toString('utf-8').split('\r\n');
 });
 
-var questions = {};
-var socketServer = io(server);
-var qnCounter = 0;
+io.sockets.on('connection', function (socket) {
+	var myNick = 'guest',
+		myColor = rndColor();
+		myScore = 0;
 
-socketServer.on('connection', function (socket) {
-  // upon connection, send them existing questions
-  socket.emit('here_are_the_current_questions', questions);
+	// TODO: MONGO
+	users.push({ id: socket.id, nick: myNick, color: myColor, score: myScore });
 
-  // If they add a new question, make question and emit to all
-  socket.on('add_new_question', function (data) {
-    var question = {text: data.text, answer: null,
-                    author: socket.id, id: qnCounter};
-    questions[qnCounter++] = question;
-    socketServer.emit('new_question_added', question);
-  });
+	io.sockets.emit('userJoined', { nick: myNick, color: myColor });
+	io.sockets.emit('users', users);
+	socket.emit('drawCanvas', canvas);
 
-  // If they request for qn info, give it to them
-  socket.on('get_question_info', function (data) {
-    if (questions.hasOwnProperty(data)) {
-      socket.emit('question_info', questions[data]);
-    } else {
-      socket.emit('question_info', null);
-    }
-  });
+	// notify if someone is drawing
+	if(currentPlayer) {
+		for(var i = 0; i<users.length; i++) {
+			if(users[i].id == currentPlayer) {
+				socket.emit('friendDraw', { color: users[i].color, nick: users[i].nick });
+				break;
+			}
+		}
+	}
 
-  // If updates an answer, broadcast to rest
-  socket.on('add_answer', function (data) {
-    questions[data.id].answer = data.answer;
-    socket.broadcast.emit('answer_added', questions[data.id]);
-  });
+	// =============
+	// chat logic section
+	// =============
+
+	socket.on('message', function (msg) {
+		if(!msg.text || msg.text.length>256) {
+			return;
+		}
+
+		io.sockets.emit('message', { text: msg.text, color: myColor, nick: myNick });
+
+		// check if current word was guessed
+		if(currentPlayer != null && currentPlayer != socket.id) {
+			if(msg.text.toLowerCase().trim() == currentWord) {
+				io.sockets.emit('wordGuessed', { text: currentWord, color: myColor, nick: myNick });
+
+				// add scores to guesser and drawer
+				for(var i = 0; i<users.length; i++) {
+					if(users[i].id == socket.id || users[i].id == currentPlayer) {
+						users[i].score = users[i].score + 10;
+					}
+				}
+
+				// comunicate new scores
+				sortUsersByScore();
+				io.sockets.emit('users', users);
+
+				// turn off drawing timer
+				clearTimeout(drawingTimer);
+				drawingTimer = null;
+
+				// allow new user to draw
+				currentPlayer = null;
+				io.sockets.emit('youCanDraw');
+			}
+		}
+	});
+
+	socket.on('nickChange', function (user) {
+		if(!user.nick || myNick == user.nick || user.nick.length>32) {
+			return;
+		}
+
+		io.sockets.emit('nickChange', { newNick: user.nick, oldNick: myNick, color: myColor });
+		myNick = user.nick;
+
+		for(var i = 0; i<users.length; i++) {
+			if(users[i].id == socket.id) {
+				users[i].nick = myNick;
+				break;
+			}
+		}
+
+		io.sockets.emit('users', users);
+	});
+
+	socket.on('disconnect', function () {
+		io.sockets.emit('userLeft', { nick: myNick, color: myColor });
+		for(var i = 0; i<users.length; i++) {
+			if(users[i].id == socket.id) {
+				users.splice(i,1);
+				break;
+			}
+		}
+
+		io.sockets.emit('users', users);
+
+		if(currentPlayer == socket.id) {
+			// turn off drawing timer
+			clearTimeout(drawingTimer);
+			turnFinished();
+		}
+	});
+
+	socket.on('draw', function (line) {
+		if(currentPlayer == socket.id) {
+			canvas.push(line);
+			socket.broadcast.emit('draw', line);
+		}
+	});
+
+	socket.on('clearCanvas', function () {
+		if(currentPlayer == socket.id) {
+			canvas.splice(0, canvas.length);
+			io.sockets.emit('clearCanvas');
+		}
+	});
+
+	socket.on('changeNickColor', function() {
+		myColor = rndColor();
+
+		for(var i = 0; i<users.length; i++) {
+			if(users[i].id == socket.id) {
+				users[i].color = myColor;
+				break;
+			}
+		}
+
+		io.sockets.emit('users', users);
+	});
+
+	function rndColor() {
+		var color = '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6);
+		return color;
+	};
+
+	function sortUsersByScore() {
+		users.sort(function(a,b) { return parseFloat(b.score) - parseFloat(a.score) } );
+	}
+
+	// =================
+	// pictionary logic section
+	// =================
+
+	socket.on('readyToDraw', function () {
+		if (!currentPlayer) {
+			currentPlayer = socket.id;
+			canvas.splice(0, canvas.length);
+			io.sockets.emit('clearCanvas');
+
+			var randomLine = Math.floor(Math.random() * dictionary.length),
+				line = dictionary[randomLine],
+				word = line.split(',');
+
+			currentWord = word[0];
+			socket.emit('youDraw', word);
+			io.sockets.emit('friendDraw', { color: myColor, nick: myNick });
+
+			// set the timer for 2 minutes (120000ms)
+			drawingTimer = setTimeout( turnFinished, 120000 );
+		} else if (currentPlayer == socket.id) {
+			// turn off drawing timer
+			clearTimeout(drawingTimer);
+			turnFinished();
+		}
+	});
+
+	function turnFinished() {
+		drawingTimer = null;
+		currentPlayer = null;
+		io.sockets.emit('wordNotGuessed', { text: currentWord });
+		io.sockets.emit('youCanDraw');
+	}
 });

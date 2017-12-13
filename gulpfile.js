@@ -1,21 +1,23 @@
 var gulp = require('gulp');
 var eslint = require('gulp-eslint');
-var zip = require('gulp-zip');
 
 var FILES = [
+  'db/mongo.js',
+  'db/models/*.js',
+  'client/*.js',
   'middlewares/*.js',
   'routes/*.js',
-  'app.js'
+  'views/*.js',
+  'server.js',
+  'expressApp.js'
 ];
 
-gulp.task('eslint', function () {
-  return gulp.src(FILES)
-    .pipe(eslint({}))
-    .pipe(eslint.format());
-});
+var options = {
+  rulePaths: ['.eslint_rules']
+};
 
-gulp.task('zip', function () {
-  return gulp.src(FILES, { base: '.' })
-    .pipe(zip('files.zip'))
-    .pipe(gulp.dest(''));
+gulp.task('eslint', function() {
+  return gulp.src(FILES)
+    .pipe(eslint())
+    .pipe(eslint.format());
 });

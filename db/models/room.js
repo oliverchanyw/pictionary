@@ -15,7 +15,7 @@ var roomSchema = mongoose.Schema({
   Members: [UserSchema],
   Playing: Boolean,
   PastDrawings: [DrawingSchema],
-  CurrDrawing: DrawingSchema
+  CurrDrawing: DrawingSchema,
   ScoreBoard: ScoreBoardSchema
 });
 
