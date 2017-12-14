@@ -2,8 +2,8 @@ var app = require('http').createServer(require('./expressApp.js'));
 var io = require('socket.io').listen(app, { log: false });
 var fs = require('fs');
 
-app.listen(process.env.port || 8080);
-console.log('>>> Pictionary started at port ' + (process.env.port || 8080) + ' >>>');
+app.listen(process.env.PORT || 8080);
+console.log('>>> Pictionary started at port ' + (process.env.PORT || 8080) + ' >>>');
 
 // ================================================
 //                                app logic section
