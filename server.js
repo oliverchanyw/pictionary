@@ -19,26 +19,33 @@ fs.readFile(__dirname + '/dictionary.txt', function (err, data) {
 });
 
 io.sockets.on('connection', function (socket) {
-	var myNick = 'guest',
-		myColor = rndColor();
-		myScore = 0;
 
-	// TODO: MONGO
-	users.push({ id: socket.id, nick: myNick, color: myColor, score: myScore });
+  // Ask for personal details to connect
+  socket.emit('whoru');
 
-	io.sockets.emit('userJoined', { nick: myNick, color: myColor });
-	io.sockets.emit('users', users);
-	socket.emit('drawCanvas', canvas);
+  // Recieve personal details before connecting proper
+  socket.on('whoami', function (deets) {
+    var myNick = deets.nick,
+  		myColor = rndColor();
+  		myScore = 0;
 
-	// notify if someone is drawing
-	if(currentPlayer) {
-		for(var i = 0; i<users.length; i++) {
-			if(users[i].id == currentPlayer) {
-				socket.emit('friendDraw', { color: users[i].color, nick: users[i].nick });
-				break;
-			}
-		}
-	}
+  	// TODO: MONGO
+  	users.push({ id: socket.id, nick: myNick, color: myColor, score: myScore });
+
+  	io.sockets.emit('userJoined', { nick: myNick, color: myColor });
+  	io.sockets.emit('users', users);
+  	socket.emit('drawCanvas', canvas);
+
+    // notify if someone is drawing
+  	if(currentPlayer) {
+  		for(var i = 0; i<users.length; i++) {
+  			if(users[i].id == currentPlayer) {
+  				socket.emit('friendDraw', { color: users[i].color, nick: users[i].nick });
+  				break;
+  			}
+  		}
+  	}
+  });
 
 	// =============
 	// chat logic section

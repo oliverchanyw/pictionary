@@ -4,6 +4,7 @@ $(document).ready(function() {
 	var people = $('#people');
 	var	chatinput = $('#chatinput');
 	var	chatnick = $('#chatnick');
+	var initNick = chatnick.attr('value');
 
 	socket.on('connect', function () {
 		console.log('Connected to the central server!');
@@ -11,6 +12,10 @@ $(document).ready(function() {
 		chatinput.removeProp('disabled');
 		chatnick.removeProp('disabled');
 		chatinput.focus();
+	});
+
+	socket.on('whoru', function () {
+		socket.emit('whoami', { nick: initNick });
 	});
 
 	socket.on('users', function (users) {
