@@ -1,7 +1,7 @@
 var mongoose = require('mongoose');
 var UserSchema = require('./user').schema;
 var DrawingSchema = require('./drawing').schema;
-var ScoreBoardSchema = require('./scoreBoard').schema;
+var ScoreBoardSchema = require('./scoreboard').schema;
 
 var roomSchema = mongoose.Schema({
   Name: {
