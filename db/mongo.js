@@ -4,7 +4,7 @@ var Room = require('./models/room');
 
 var mongoose = require('mongoose');
 
-mongoose.connect('mongodb://localhost/cis197hw6', function (err) {
+mongoose.connect('mongodb://oli:pass@ds125565.mlab.com:25565/pictionary', function (err) {
   if (err && err.message.includes('ECONNREFUSED')) {
     console.log('Error connecting to mongodb database: %s.\nIs "mongod" running?', err.message);
     process.exit(0);
