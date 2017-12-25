@@ -1,5 +1,4 @@
 $(document).ready(function() {
-	var io = require('socket.io')(http);
 	var socket = io('/');
 	var status = $('#status');
 	var people = $('#people');
